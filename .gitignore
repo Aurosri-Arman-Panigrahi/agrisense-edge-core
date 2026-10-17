@@ -1,0 +1,42 @@
+# AgriSense-Edge Core Repository .gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Node & Node-RED local runtime artifacts
+node_modules/
+.npm/
+.node-red/
+*.log
+npm-debug.log*
+
+# Docker & Mosquitto local persistence
+mosquitto-data/
+mosquitto-log/
+*.pid
+
+# LaTeX compilation auxiliary files (preserve compiled PDF)
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+
+# OS & Secrets
+.DS_Store
+Thumbs.db
+.env
+.env.local
+*.pem
+*.key

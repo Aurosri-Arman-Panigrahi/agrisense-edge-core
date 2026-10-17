@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: agrisense-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    networks:
+      - agrisense-network
+
+  nodered-edge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrisense-nodered
+    restart: unless-stopped
+    depends_on:
+      - mqtt-broker
+    ports:
+      - "1880:1880"
+    environment:
+      - TZ=Asia/Kolkata
+      - NODE_RED_CREDENTIAL_SECRET=agrisense_pod_secret_2026
+    volumes:
+      - nodered-data:/data
+      - ./settings.js:/data/settings.js:ro
+      - ./flows.json:/data/flows.json:ro
+    networks:
+      - agrisense-network
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  nodered-data:
+
+networks:
+  agrisense-network:
+    driver: bridge
