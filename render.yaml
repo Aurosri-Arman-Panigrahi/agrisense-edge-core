@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: agrisense-core
+    env: docker
+    dockerfilePath: nodered/Dockerfile
+    dockerContext: nodered
+    plan: starter
+    region: oregon
+    healthCheckPath: /ui
+    envVars:
+      - key: PORT
+        value: 1880
+      - key: NODE_ENV
+        value: production
+      - key: NODE_RED_CREDENTIAL_SECRET
+        generateValue: true
+      - key: UI_HOST
+        value: 0.0.0.0
