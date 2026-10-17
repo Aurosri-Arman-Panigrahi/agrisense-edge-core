@@ -189,13 +189,15 @@ where empirical calibration coefficients for silt-loam agricultural testbeds wer
 \subsection{Closed-Loop Hysteretic Decision State Machine}
 The Node-RED runtime evaluates multi-depth soil moisture against two agronomic thresholds: the Permanent Wilting Point ($\theta_{\text{PWP}} \approx 0.16$\,m$^3$\,m$^{-3}$) and Field Capacity ($\theta_{\text{FC}} \approx 0.32$\,m$^3$\,m$^{-3}$). To protect against deep nutrient leaching, a drainage threshold is enforced at the 50\,cm boundary ($\theta_{\text{Drainage}} = 0.35$\,m$^3$\,m$^{-3}$).
 
-The deterministic state equation governing the bi-stable valve is formulated as:
+The deterministic state equation governing the bi-stable valve is formulated with hysteretic thresholds as:
 \begin{equation}
 \mathcal{S}_{\text{valve}}(t) = 
 \begin{cases}
-\text{OPEN}, & \text{if } \theta_{10\text{cm}}(t) < \theta_{\text{PWP}} \land \theta_{50\text{cm}}(t) < \theta_{\text{Drainage}} \\
-\text{CLOSED}, & \text{if } \theta_{30\text{cm}}(t) \ge \theta_{\text{FC}} \lor \theta_{50\text{cm}}(t) \ge \theta_{\text{Drainage}} \\
-\mathcal{S}_{\text{valve}}(t-\delta t), & \text{otherwise (Hysteresis Band)}
+\text{OPEN}, & \text{if } \theta_{10}(t) < \theta_{\text{PWP}} \\
+             & \quad \land\ \theta_{50}(t) < \theta_{\text{Drainage}} \\
+\text{CLOSED}, & \text{if } \theta_{30}(t) \ge \theta_{\text{FC}} \\
+               & \quad \lor\ \theta_{50}(t) \ge \theta_{\text{Drainage}} \\
+\mathcal{S}_{\text{valve}}(t-\delta t), & \text{otherwise (Hysteresis)}
 \end{cases}
 \label{eq:state_machine}
 \end{equation}
@@ -214,24 +216,24 @@ Validation trials were executed across a 60-day bell pepper (\textit{Capsicum an
 \subsection{Comparative Agronomic and Edge Performance}
 Table~\ref{tab:results} summarizes the performance metrics observed across the complete 60-day empirical trial.
 
-\begin{table}[htbp]
+\begin{table*}[t]
 \caption{Empirical Performance Comparison Across 60-Day Crop Cycle}
 \label{tab:results}
 \centering
-\begin{tabular}{lccc}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc}
 \toprule
-\textbf{Metric} & \textbf{Plot A (Control)} & \textbf{Plot B (Comm.)} & \textbf{Plot C (Proposed)} \\
+\textbf{Agronomic / Edge Metric} & \textbf{Plot A (Timer Control)} & \textbf{Plot B (Commercial Cloud)} & \textbf{Plot C (AgriSense-Edge Pod)} \\
 \midrule
-Cumulative Water Applied (L) & 42,850 & 30,120 & \textbf{28,190} \\
-Water Conservation (\%) & Baseline & 29.7\% & \textbf{34.2\%} \\
-Mean Closed-Loop Latency & N/A (Static) & 1,840\,ms & \textbf{112\,ms} \\
-Uptime during 72h Outage & 100\% (Open-Loop) & 24.3\% (Frozen) & \textbf{100\% (Active)} \\
-Deep Leaching Events ($>50$cm) & 47 occurrences & 12 occurrences & \textbf{2 occurrences} \\
-Crop Yield Metric (kg/m$^2$) & 4.12 & 4.88 & \textbf{4.95} \\
-Dielectric Accuracy (RMSE) & N/A & 0.021\,m$^3$/m$^3$ & \textbf{0.024\,m$^3$/m$^3$} \\
+Cumulative Irrigation Water Applied (L) & 42,850 & 30,120 & \textbf{28,190} \\
+Freshwater Conservation (\%) & Baseline (0.0\%) & 29.7\% & \textbf{34.2\%} \\
+Mean Closed-Loop Response Latency & N/A (Static Timer) & 1,840\,ms & \textbf{112\,ms} \\
+Operational Uptime during 72h WAN Outage & 100\% (Open-Loop Drip) & 24.3\% (Valves Frozen) & \textbf{100\% (Active Edge Hysteresis)} \\
+Deep Agrochemical Leaching Events ($>50$\,cm) & 47 occurrences & 12 occurrences & \textbf{2 occurrences} \\
+Harvested Crop Yield Metric (kg/m$^2$) & 4.12 & 4.88 & \textbf{4.95} \\
+Dielectric Permittivity Accuracy (RMSE) & N/A & 0.021\,m$^3$/m$^3$ & \textbf{0.024\,m$^3$/m$^3$} \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular*}
+\end{table*}
 
 \subsection{Statistical Hypothesis Testing}
 Paired two-sample Student's $t$-tests conducted on daily volumetric water application confirmed that the 34.2\% water conservation achieved by AgriSense-Edge is statistically highly significant ($t(59) = 8.74$, $p = 1.4 \times 10^{-12} < 0.001$). Consequently, the null hypothesis $H_0$ is decisively rejected in favor of alternative hypothesis $H_1$.
