@@ -16,6 +16,10 @@ node_modules/
 .node-red/
 *.log
 npm-debug.log*
+nodered/.config.*
+nodered/.flows.json.backup
+nodered/.sessions.json
+nodered/context/
 
 # Docker & Mosquitto local persistence
 mosquitto-data/
