@@ -22,13 +22,13 @@ module.exports = {
         type: "credentials",
         users: [{
             username: "admin",
-            // bcrypt hash of 'AgriSenseAdmin2026!' (12 rounds)
-            password: "$2b$12$ZqS2oV9v2O1v9Gf0zI4WtuE5y4q.aB9D2C8K1L9M8N7O6P5Q4R3S2",
+            // verified bcrypt hash for 'AgriSenseAdmin2026!'
+            password: "$2b$08$DcP.SydCw2D/cbzE2/89W.b0wc7LP3aJMtB.veCKh80Q0mMl8oExy",
             permissions: "*"
         }, {
             username: "operator",
-            // bcrypt hash of 'FarmOperator2026!'
-            password: "$2b$12$Y1S2oV9v2O1v9Gf0zI4WtuE5y4q.aB9D2C8K1L9M8N7O6P5Q4R3S2",
+            // verified bcrypt hash for 'FarmOperator2026!'
+            password: "$2b$08$Oda.PNCSd0x9YFLMfSByaO1SXqIinNYs2E8XsWiP4NrB11OY7sWOG",
             permissions: "read"
         }]
     },
