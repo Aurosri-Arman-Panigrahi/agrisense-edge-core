@@ -22,8 +22,8 @@ module.exports = {
         type: "credentials",
         users: [{
             username: "admin",
-            // verified bcrypt hash for 'AgriSenseAdmin2026!'
-            password: "$2b$08$DcP.SydCw2D/cbzE2/89W.b0wc7LP3aJMtB.veCKh80Q0mMl8oExy",
+            // verified bcrypt hash for 'admin@12345'
+            password: "$2b$08$V7I8lYh0SkxzHZ41narljezV3mK./aRYaODgavKuDbcdc5yzwCX26",
             permissions: "*"
         }, {
             username: "operator",
