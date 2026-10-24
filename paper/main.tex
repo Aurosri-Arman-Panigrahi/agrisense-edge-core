@@ -10,6 +10,7 @@
 \usepackage{cite}
 \usepackage{url}
 \usepackage{microtype}
+\usepackage{balance}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows, positioning}
 
@@ -186,6 +187,25 @@ The resonant frequency $f$ of each oscillator circuit is converted to apparent b
 \end{equation}
 where empirical calibration coefficients for silt-loam agricultural testbeds were experimentally fitted to: $a = 4.3 \times 10^{-6}$, $b = -5.5 \times 10^{-4}$, $c = 2.92 \times 10^{-2}$, and $d = -5.3 \times 10^{-2}$ ($R^2 = 0.984$).
 
+\begin{table*}[t]
+\caption{Empirical Performance Comparison Across 60-Day Crop Cycle}
+\label{tab:results}
+\centering
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc}
+\toprule
+\textbf{Agronomic / Edge Metric} & \textbf{Plot A (Timer Control)} & \textbf{Plot B (Commercial Cloud)} & \textbf{Plot C (AgriSense-Edge Pod)} \\
+\midrule
+Cumulative Irrigation Water Applied (L) & 42,850 & 30,120 & \textbf{28,190} \\
+Freshwater Conservation (\%) & Baseline (0.0\%) & 29.7\% & \textbf{34.2\%} \\
+Mean Closed-Loop Response Latency & N/A (Static Timer) & 1,840\,ms & \textbf{112\,ms} \\
+Operational Uptime during 72h WAN Outage & 100\% (Open-Loop Drip) & 24.3\% (Valves Frozen) & \textbf{100\% (Active Edge Hysteresis)} \\
+Deep Agrochemical Leaching Events ($>50$\,cm) & 47 occurrences & 12 occurrences & \textbf{2 occurrences} \\
+Harvested Crop Yield Metric (kg/m$^2$) & 4.12 & 4.88 & \textbf{4.95} \\
+Dielectric Permittivity Accuracy (RMSE) & N/A & 0.021\,m$^3$/m$^3$ & \textbf{0.024\,m$^3$/m$^3$} \\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
 \subsection{Closed-Loop Hysteretic Decision State Machine}
 The Node-RED runtime evaluates multi-depth soil moisture against two agronomic thresholds: the Permanent Wilting Point ($\theta_{\text{PWP}} \approx 0.16$\,m$^3$\,m$^{-3}$) and Field Capacity ($\theta_{\text{FC}} \approx 0.32$\,m$^3$\,m$^{-3}$). To protect against deep nutrient leaching, a drainage threshold is enforced at the 50\,cm boundary ($\theta_{\text{Drainage}} = 0.35$\,m$^3$\,m$^{-3}$).
 
@@ -216,25 +236,6 @@ Validation trials were executed across a 60-day bell pepper (\textit{Capsicum an
 \subsection{Comparative Agronomic and Edge Performance}
 Table~\ref{tab:results} summarizes the performance metrics observed across the complete 60-day empirical trial.
 
-\begin{table*}[t]
-\caption{Empirical Performance Comparison Across 60-Day Crop Cycle}
-\label{tab:results}
-\centering
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc}
-\toprule
-\textbf{Agronomic / Edge Metric} & \textbf{Plot A (Timer Control)} & \textbf{Plot B (Commercial Cloud)} & \textbf{Plot C (AgriSense-Edge Pod)} \\
-\midrule
-Cumulative Irrigation Water Applied (L) & 42,850 & 30,120 & \textbf{28,190} \\
-Freshwater Conservation (\%) & Baseline (0.0\%) & 29.7\% & \textbf{34.2\%} \\
-Mean Closed-Loop Response Latency & N/A (Static Timer) & 1,840\,ms & \textbf{112\,ms} \\
-Operational Uptime during 72h WAN Outage & 100\% (Open-Loop Drip) & 24.3\% (Valves Frozen) & \textbf{100\% (Active Edge Hysteresis)} \\
-Deep Agrochemical Leaching Events ($>50$\,cm) & 47 occurrences & 12 occurrences & \textbf{2 occurrences} \\
-Harvested Crop Yield Metric (kg/m$^2$) & 4.12 & 4.88 & \textbf{4.95} \\
-Dielectric Permittivity Accuracy (RMSE) & N/A & 0.021\,m$^3$/m$^3$ & \textbf{0.024\,m$^3$/m$^3$} \\
-\bottomrule
-\end{tabular*}
-\end{table*}
-
 \subsection{Statistical Hypothesis Testing}
 Paired two-sample Student's $t$-tests conducted on daily volumetric water application confirmed that the 34.2\% water conservation achieved by AgriSense-Edge is statistically highly significant ($t(59) = 8.74$, $p = 1.4 \times 10^{-12} < 0.001$). Consequently, the null hypothesis $H_0$ is decisively rejected in favor of alternative hypothesis $H_1$.
 
@@ -259,6 +260,7 @@ Two principal technical limitations require acknowledgment:
 \section{Conclusion}
 This paper presented the design, implementation, and agronomic validation of the AgriSense-Edge Pod\texttrademark, a patent-pending multi-depth capacitive impedance probe and edge-decoupled computing architecture for precision micro-irrigation. By combining ENIG-treated annular electrodes, active guard-ring shielding, a bi-stable latching hydraulic flange, and on-premises Node-RED hysteresis decision logic, the system completely removes rural cloud connectivity dependencies. Empirical 60-day field evaluations demonstrated a 34.2\% reduction in freshwater extraction, sub-120\,ms closed-loop execution latency, and 100\% operational uptime through wide-area communication blackouts. Future work will focus on integrating in-situ microfluidic ion-selective nutrient sensors (NPK) and mesh synchronization with autonomous agricultural drone swarms.
 
+\balance
 \section*{Acknowledgment}
 The authors express sincere gratitude to the Department of Computer Science and Engineering, KIIT University, for providing laboratory facilities, embedded computing hardware, and agricultural testbeds.
 
