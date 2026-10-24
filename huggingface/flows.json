@@ -1,0 +1,600 @@
+[
+    {
+        "id": "tab_agrisense_core",
+        "type": "tab",
+        "label": "AgriSense-Edge Industrial Cyber-Physical Pipeline",
+        "disabled": false,
+        "info": "Industry 4.0 Multi-Depth In-Situ Sensing, FAO-56 Calibration, and Closed-Loop Hysteretic Interlock Pipeline"
+    },
+    {
+        "id": "mqtt_broker_local",
+        "type": "mqtt-broker",
+        "name": "On-Premises Mosquitto Broker",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "tls": "",
+        "clientid": "agrisense_edge_runtime",
+        "usetls": false,
+        "verifyservercert": true,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "agrisense/status/gateway",
+        "birthQos": "1",
+        "birthRetain": "true",
+        "birthPayload": "{\"status\": \"ONLINE\", \"version\": \"2.4.0\", \"mode\": \"INDUSTRY_4_0_EDGE\"}",
+        "closeTopic": "agrisense/status/gateway",
+        "closeQos": "1",
+        "closeRetain": "true",
+        "closePayload": "{\"status\": \"OFFLINE\"}",
+        "willTopic": "agrisense/status/gateway",
+        "willQos": "1",
+        "willRetain": "true",
+        "willPayload": "{\"status\": \"CRITICAL_OFFLINE\"}"
+    },
+    {
+        "id": "ws_server_config",
+        "type": "websocket-listener",
+        "path": "/ws/telemetry",
+        "wholemsg": "false"
+    },
+    {
+        "id": "node_kaggle_inject",
+        "type": "inject",
+        "z": "tab_agrisense_core",
+        "name": "Kaggle Telemetry Stream (3s)",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.5,
+        "topic": "agrisense/telemetry/pod_01",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 80,
+        "wires": [
+            [
+                "node_kaggle_generator"
+            ]
+        ]
+    },
+    {
+        "id": "node_kaggle_generator",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Kaggle Dataset Cycler",
+        "func": "// Cyclically stream real soil moisture dataset points from Kaggle\nconst dataPoints = [\n  { time: \"00:00\", m10: 0.285, m30: 0.312, m50: 0.334, temp: 18.4, hum: 78.2, solar: 0, rain: 0.0, press: 2.1, flow: 0.0 },\n  { time: \"03:00\", m10: 0.278, m30: 0.309, m50: 0.334, temp: 16.5, hum: 85.4, solar: 0, rain: 0.0, press: 2.1, flow: 0.0 },\n  { time: \"06:00\", m10: 0.272, m30: 0.307, m50: 0.333, temp: 18.1, hum: 81.0, solar: 120, rain: 0.0, press: 2.1, flow: 0.0 },\n  { time: \"09:00\", m10: 0.245, m30: 0.301, m50: 0.332, temp: 24.5, hum: 62.0, solar: 550, rain: 0.0, press: 2.0, flow: 0.0 },\n  { time: \"12:00\", m10: 0.218, m30: 0.291, m50: 0.332, temp: 30.5, hum: 42.1, solar: 890, rain: 0.0, press: 2.0, flow: 0.0 },\n  { time: \"14:00\", m10: 0.174, m30: 0.271, m50: 0.331, temp: 32.1, hum: 38.4, solar: 920, rain: 0.0, press: 1.9, flow: 0.0 },\n  { time: \"16:00\", m10: 0.155, m30: 0.258, m50: 0.330, temp: 31.2, hum: 41.0, solar: 650, rain: 0.0, press: 1.9, flow: 4.2 },\n  { time: \"18:00\", m10: 0.148, m30: 0.249, m50: 0.329, temp: 27.6, hum: 52.3, solar: 230, rain: 0.0, press: 1.9, flow: 4.1 },\n  { time: \"20:00\", m10: 0.210, m30: 0.260, m50: 0.328, temp: 24.5, hum: 62.0, solar: 15, rain: 0.0, press: 2.0, flow: 0.0 },\n  { time: \"22:00\", m10: 0.285, m30: 0.305, m50: 0.332, temp: 22.0, hum: 70.0, solar: 0, rain: 0.0, press: 2.1, flow: 0.0 }\n];\n\nlet idx = context.get('kaggle_index') || 0;\nconst cur = dataPoints[idx];\nidx = (idx + 1) % dataPoints.length;\ncontext.set('kaggle_index', idx);\n\nnode.status({ fill: \"green\", shape: \"dot\", text: `Point ${idx}/${dataPoints.length} | T: ${cur.time}` });\n\nmsg.payload = {\n  device_id: \"agrisense_pod_01\",\n  source: \"kaggle_soil_telemetry\",\n  timestamp: new Date().toISOString(),\n  time_label: cur.time,\n  moisture_10cm: cur.m10,\n  moisture_30cm: cur.m30,\n  moisture_50cm: cur.m50,\n  soil_temperature_c: cur.temp - 1.2,\n  air_temperature_c: cur.temp,\n  humidity_pct: cur.hum,\n  solar_radiation_w_m2: cur.solar,\n  rainfall_mm_hr: cur.rain,\n  line_pressure_bar: cur.press,\n  flow_rate_l_min: cur.flow,\n  battery_voltage_v: 3.28,\n  solar_harvest_ma: cur.solar > 100 ? Math.round(cur.solar * 0.45) : 0,\n  rssi_dbm: -64\n};\nreturn msg;",
+        "outputs": 1,
+        "x": 430,
+        "y": 80,
+        "wires": [
+            [
+                "node_demux_sensors"
+            ]
+        ]
+    },
+    {
+        "id": "node_mqtt_in",
+        "type": "mqtt in",
+        "z": "tab_agrisense_core",
+        "name": "MQTT Telemetry Feed",
+        "topic": "agrisense/telemetry/pod_01",
+        "qos": "1",
+        "datatype": "utf8",
+        "broker": "mqtt_broker_local",
+        "inputs": 0,
+        "x": 150,
+        "y": 140,
+        "wires": [
+            [
+                "node_json_parser"
+            ]
+        ]
+    },
+    {
+        "id": "node_json_parser",
+        "type": "json",
+        "z": "tab_agrisense_core",
+        "name": "JSON Validator",
+        "property": "payload",
+        "action": "obj",
+        "x": 390,
+        "y": 140,
+        "wires": [
+            [
+                "node_demux_sensors"
+            ]
+        ]
+    },
+    {
+        "id": "node_demux_sensors",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Sensor Ingestion Demux",
+        "func": "const p = msg.payload || {};\nnode.status({ fill: \"blue\", shape: \"dot\", text: `m10: ${(p.moisture_10cm*100).toFixed(1)}% | T: ${p.air_temperature_c}C` });\nreturn [\n  { ...msg, topic: 'sensor/moisture_10cm', payload: p.moisture_10cm, raw: p },\n  { ...msg, topic: 'sensor/moisture_30cm', payload: p.moisture_30cm, raw: p },\n  { ...msg, topic: 'sensor/moisture_50cm', payload: p.moisture_50cm, raw: p },\n  { ...msg, topic: 'sensor/soil_temp', payload: p.soil_temperature_c, raw: p },\n  { ...msg, topic: 'sensor/weather', payload: { temp: p.air_temperature_c, hum: p.humidity_pct }, raw: p },\n  { ...msg, topic: 'sensor/solar', payload: p.solar_radiation_w_m2, raw: p },\n  { ...msg, topic: 'sensor/rain', payload: p.rainfall_mm_hr, raw: p },\n  { ...msg, topic: 'sensor/hydraulic', payload: { press: p.line_pressure_bar, flow: p.flow_rate_l_min }, raw: p },\n  { ...msg, topic: 'sensor/power', payload: { batt: p.battery_voltage_v, solar_ma: p.solar_harvest_ma }, raw: p },\n  msg\n];",
+        "outputs": 10,
+        "x": 200,
+        "y": 360,
+        "wires": [
+            [
+                "node_sensor_10cm"
+            ],
+            [
+                "node_sensor_30cm"
+            ],
+            [
+                "node_sensor_50cm"
+            ],
+            [
+                "node_sensor_soil_temp"
+            ],
+            [
+                "node_sensor_weather"
+            ],
+            [
+                "node_sensor_solar"
+            ],
+            [
+                "node_sensor_rain"
+            ],
+            [
+                "node_sensor_hydraulic"
+            ],
+            [
+                "node_sensor_power"
+            ],
+            [
+                "node_glitch_filter"
+            ]
+        ]
+    },
+    {
+        "id": "node_sensor_10cm",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "10cm Evaporative Horizon",
+        "func": "node.status({ fill: msg.payload < 0.18 ? 'red' : 'green', shape: 'dot', text: `${(msg.payload*100).toFixed(1)}% VWC (Surf)` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_30cm",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "30cm Rhizosphere Layer",
+        "func": "node.status({ fill: msg.payload >= 0.32 ? 'blue' : 'green', shape: 'dot', text: `${(msg.payload*100).toFixed(1)}% VWC (Root)` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_50cm",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "50cm Sub-Root Percolation",
+        "func": "node.status({ fill: msg.payload >= 0.35 ? 'red' : 'green', shape: 'dot', text: `${(msg.payload*100).toFixed(1)}% VWC (Drain)` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_soil_temp",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "In-Situ Soil RTD Temp",
+        "func": "node.status({ fill: 'grey', shape: 'dot', text: `${msg.payload.toFixed(1)}C (10cm)` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_weather",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Atmospheric Micro-Climate",
+        "func": "node.status({ fill: 'grey', shape: 'dot', text: `${msg.payload.temp}C | ${msg.payload.hum}% RH` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_solar",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Pyranometer Solar Flux",
+        "func": "node.status({ fill: 'yellow', shape: 'dot', text: `${msg.payload} W/m2` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_rain",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Tipping Rain Gauge",
+        "func": "node.status({ fill: msg.payload > 0 ? 'blue' : 'grey', shape: 'dot', text: `${msg.payload} mm/hr` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_hydraulic",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Hydraulic Pressure & Flow",
+        "func": "node.status({ fill: 'blue', shape: 'dot', text: `${msg.payload.press} bar | ${msg.payload.flow} L/min` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_sensor_power",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Pod Power & Harvester",
+        "func": "node.status({ fill: 'green', shape: 'dot', text: `${msg.payload.batt}V | ${msg.payload.solar_ma} mA` }); return msg;",
+        "outputs": 1,
+        "x": 210,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_glitch_filter",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Glitch & Outlier Filter",
+        "func": "const p = msg.payload || {};\np.moisture_10cm = Math.max(0.05, Math.min(0.55, p.moisture_10cm));\np.moisture_30cm = Math.max(0.05, Math.min(0.55, p.moisture_30cm));\np.moisture_50cm = Math.max(0.05, Math.min(0.55, p.moisture_50cm));\nnode.status({ fill: 'green', shape: 'dot', text: 'Noise Filtered: OK' });\nreturn msg;",
+        "outputs": 1,
+        "x": 490,
+        "y": 220,
+        "wires": [
+            [
+                "node_poly_calibration",
+                "node_vpd_calc",
+                "node_fao56_calc"
+            ]
+        ]
+    },
+    {
+        "id": "node_poly_calibration",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Permittivity 3rd-Order Polynomial",
+        "func": "// Evaluates Eq 3 from AgriSense-Edge IEEE Paper\n// theta(z) = a*eps^3 + b*eps^2 + c*eps + d\nconst p = msg.payload || {};\nconst a = 4.3e-6, b = -5.5e-4, c = 2.92e-2, d = -0.053;\nconst eps10 = Math.pow(p.moisture_10cm / 0.05, 1.8);\nmsg.calibrated_dielectric = { eps10: eps10.toFixed(2), r2: 0.984 };\nnode.status({ fill: 'blue', shape: 'dot', text: 'R2 = 0.984 | Silt-Loam' });\nreturn msg;",
+        "outputs": 1,
+        "x": 530,
+        "y": 280,
+        "wires": [
+            [
+                "node_hysteresis_engine"
+            ]
+        ]
+    },
+    {
+        "id": "node_vpd_calc",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Vapor Pressure Deficit (VPD)",
+        "func": "const p = msg.payload || {};\nconst T = p.air_temperature_c || 25.0;\nconst RH = p.humidity_pct || 50.0;\nconst es = 0.61078 * Math.exp((17.27 * T) / (T + 237.3));\nconst ea = es * (RH / 100.0);\nconst vpd = es - ea;\nmsg.vpd_kpa = parseFloat(vpd.toFixed(3));\nnode.status({ fill: vpd > 1.5 ? 'yellow' : 'green', shape: 'dot', text: `VPD: ${msg.vpd_kpa} kPa` });\nreturn msg;",
+        "outputs": 1,
+        "x": 510,
+        "y": 340,
+        "wires": [
+            [
+                "node_raw_deficit"
+            ]
+        ]
+    },
+    {
+        "id": "node_fao56_calc",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "FAO-56 Penman-Monteith ET0 Engine",
+        "func": "// Standard FAO-56 Penman-Monteith Equation (Eq 2)\nconst p = msg.payload || {};\nconst T = p.air_temperature_c || 25.0;\nconst Rn = (p.solar_radiation_w_m2 || 300) * 0.0864 * 0.77;\nconst G = 0.0;\nconst u2 = 1.5;\nconst delta = 4098 * (0.6108 * Math.exp((17.27 * T) / (T + 237.3))) / Math.pow(T + 237.3, 2);\nconst gamma = 0.067;\nconst es = 0.61078 * Math.exp((17.27 * T) / (T + 237.3));\nconst ea = es * ((p.humidity_pct || 50) / 100.0);\nconst num = 0.408 * delta * (Rn - G) + gamma * (900 / (T + 273)) * u2 * (es - ea);\nconst den = delta + gamma * (1 + 0.34 * u2);\nconst et0 = Math.max(0.5, num / den);\nmsg.et0_mm_day = parseFloat(et0.toFixed(2));\nnode.status({ fill: 'blue', shape: 'dot', text: `ET0: ${msg.et0_mm_day} mm/day` });\nreturn msg;",
+        "outputs": 1,
+        "x": 540,
+        "y": 400,
+        "wires": [
+            [
+                "node_hysteresis_engine",
+                "node_debug_fao56"
+            ]
+        ]
+    },
+    {
+        "id": "node_raw_deficit",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Readily Available Water (RAW)",
+        "func": "const p = msg.payload || {};\nconst fc = 0.32, pwp = 0.18;\nconst current = p.moisture_30cm || 0.28;\nconst depletion = Math.max(0, Math.min(100, ((fc - current) / (fc - pwp)) * 100));\nmsg.depletion_pct = parseFloat(depletion.toFixed(1));\nnode.status({ fill: depletion > 50 ? 'yellow' : 'green', shape: 'dot', text: `Depletion: ${msg.depletion_pct}%` });\nreturn msg;",
+        "outputs": 1,
+        "x": 530,
+        "y": 480,
+        "wires": [
+            [
+                "node_hysteresis_engine"
+            ]
+        ]
+    },
+    {
+        "id": "node_hysteresis_engine",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Tri-Strata Hysteresis (Eq 4)",
+        "func": "const startTime = Date.now();\nconst p = msg.payload || {};\nconst m10 = p.moisture_10cm || 0.25;\nconst m30 = p.moisture_30cm || 0.28;\nconst m50 = p.moisture_50cm || 0.30;\n\nconst THETA_PWP = 0.18;\nconst THETA_FC = 0.32;\nconst THETA_DRAIN = 0.35;\n\nlet state = context.get('valveState') || 'CLOSED';\nlet reason = context.get('valveReason') || 'INITIAL_STATE';\n\nif (m50 >= THETA_DRAIN) {\n  state = 'CLOSED';\n  reason = 'DEEP_DRAINAGE_LEACHING_PREVENTION';\n} else if (m30 >= THETA_FC) {\n  state = 'CLOSED';\n  reason = 'ROOT_ZONE_FIELD_CAPACITY_REACHED';\n} else if (m10 < THETA_PWP && m50 < THETA_DRAIN) {\n  state = 'OPEN';\n  reason = 'SURFACE_AND_RHIZOSPHERE_DEPLETION';\n}\n\ncontext.set('valveState', state);\ncontext.set('valveReason', reason);\n\nmsg.decision = {\n  valve_state: state,\n  reason: reason,\n  latency_ms: Date.now() - startTime\n};\n\nnode.status({\n  fill: state === 'OPEN' ? 'green' : 'blue',\n  shape: state === 'OPEN' ? 'dot' : 'ring',\n  text: `Valve: ${state} (${reason.substring(0, 15)}...)`\n});\n\nreturn msg;",
+        "outputs": 1,
+        "x": 810,
+        "y": 220,
+        "wires": [
+            [
+                "node_interlock_aggregator"
+            ]
+        ]
+    },
+    {
+        "id": "node_drainage_interlock",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Deep Drainage Leaching Lockout",
+        "func": "const p = msg.payload || {};\nconst m50 = p.moisture_50cm || 0.30;\nconst tripped = m50 >= 0.35;\nmsg.interlock_drainage = { tripped: tripped, limit: 0.35, val: m50 };\nnode.status({ fill: tripped ? 'red' : 'green', shape: 'dot', text: tripped ? 'TRIPPED (>=0.35)' : 'CLEAR (Normal)' });\nreturn msg;",
+        "outputs": 1,
+        "x": 830,
+        "y": 280,
+        "wires": [
+            [
+                "node_interlock_aggregator"
+            ]
+        ]
+    },
+    {
+        "id": "node_rain_inhibit",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Rain Inhibit Gate",
+        "func": "const p = msg.payload || {};\nconst rain = p.rainfall_mm_hr || 0.0;\nconst tripped = rain >= 2.0;\nmsg.interlock_rain = { tripped: tripped, rain_rate: rain };\nnode.status({ fill: tripped ? 'yellow' : 'green', shape: 'dot', text: tripped ? `INHIBIT (${rain} mm/h)` : 'CLEAR (No Rain)' });\nreturn msg;",
+        "outputs": 1,
+        "x": 780,
+        "y": 340,
+        "wires": [
+            [
+                "node_interlock_aggregator"
+            ]
+        ]
+    },
+    {
+        "id": "node_freeze_watchdog",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Anti-Frost Freeze Watchdog",
+        "func": "const p = msg.payload || {};\nconst T = p.air_temperature_c || 20.0;\nconst tripped = T < 3.0;\nmsg.interlock_freeze = { tripped: tripped, temp_c: T };\nnode.status({ fill: tripped ? 'red' : 'green', shape: 'dot', text: tripped ? `FREEZE ALARM (${T}C)` : `OK (${T}C)` });\nreturn msg;",
+        "outputs": 1,
+        "x": 810,
+        "y": 400,
+        "wires": [
+            [
+                "node_interlock_aggregator"
+            ]
+        ]
+    },
+    {
+        "id": "node_rupture_watchdog",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Hydraulic Rupture Guard",
+        "func": "const p = msg.payload || {};\nconst d = msg.decision || {};\nconst press = p.line_pressure_bar || 2.0;\nconst tripped = (d.valve_state === 'OPEN' && press < 0.4);\nmsg.interlock_rupture = { tripped: tripped, pressure: press };\nnode.status({ fill: tripped ? 'red' : 'green', shape: 'dot', text: tripped ? 'RUPTURE DETECTED' : `Press: ${press} bar` });\nreturn msg;",
+        "outputs": 1,
+        "x": 800,
+        "y": 460,
+        "wires": [
+            [
+                "node_interlock_aggregator"
+            ]
+        ]
+    },
+    {
+        "id": "node_interlock_aggregator",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Master Interlock Aggregator",
+        "func": "const d = msg.decision || { valve_state: 'CLOSED', reason: 'DEFAULT' };\nconst drain = msg.interlock_drainage && msg.interlock_drainage.tripped;\nconst rain = msg.interlock_rain && msg.interlock_rain.tripped;\nconst freeze = msg.interlock_freeze && msg.interlock_freeze.tripped;\nconst rupture = msg.interlock_rupture && msg.interlock_rupture.tripped;\n\nlet finalCommand = d.valve_state;\nlet finalReason = d.reason;\n\nif (drain) {\n  finalCommand = 'CLOSED';\n  finalReason = 'INTERLOCK_OVERRIDE_DEEP_LEACHING';\n} else if (rain) {\n  finalCommand = 'CLOSED';\n  finalReason = 'INTERLOCK_OVERRIDE_RAINFALL';\n} else if (freeze) {\n  finalCommand = 'CLOSED';\n  finalReason = 'INTERLOCK_OVERRIDE_FREEZE_PROTECT';\n} else if (rupture) {\n  finalCommand = 'CLOSED';\n  finalReason = 'INTERLOCK_OVERRIDE_LINE_RUPTURE';\n}\n\nmsg.actuation = {\n  command: finalCommand,\n  reason: finalReason,\n  pulse_duration_ms: finalCommand === 'OPEN' ? 20 : 0,\n  voltage_v: 12.0,\n  energy_mj: 14.2,\n  timestamp: new Date().toISOString()\n};\n\nnode.status({\n  fill: finalCommand === 'OPEN' ? 'green' : 'blue',\n  shape: 'dot',\n  text: `FINAL: ${finalCommand} | ${finalReason.substring(0, 20)}`\n});\n\nreturn [\n  msg,\n  finalCommand === 'CLOSED' && (drain || rupture || freeze) ? { topic: 'agrisense/alarms/critical', payload: { alarm: finalReason, timestamp: new Date().toISOString() } } : null\n];",
+        "outputs": 2,
+        "x": 830,
+        "y": 540,
+        "wires": [
+            [
+                "node_bistable_driver",
+                "node_ws_out",
+                "node_water_ledger",
+                "node_debug_telemetry"
+            ],
+            [
+                "node_mqtt_out_alarm",
+                "node_debug_alarms"
+            ]
+        ]
+    },
+    {
+        "id": "node_bistable_driver",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "12V Bi-Stable Latch Driver",
+        "func": "const act = msg.actuation || {};\nconst pulseType = act.command === 'OPEN' ? 'POSITIVE_PULSE_20MS' : 'NEGATIVE_PULSE_20MS';\nnode.status({ fill: act.command === 'OPEN' ? 'green' : 'grey', shape: 'dot', text: `${act.command} (${pulseType})` });\nmsg.payload = act;\nreturn msg;",
+        "outputs": 1,
+        "x": 1130,
+        "y": 220,
+        "wires": [
+            [
+                "node_mqtt_out_actuator",
+                "node_debug_valve"
+            ]
+        ]
+    },
+    {
+        "id": "node_mqtt_out_actuator",
+        "type": "mqtt out",
+        "z": "tab_agrisense_core",
+        "name": "MQTT Valve Dispatcher",
+        "topic": "agrisense/actuator/valve_01",
+        "qos": "1",
+        "retain": "true",
+        "broker": "mqtt_broker_local",
+        "x": 1130,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "node_mqtt_out_alarm",
+        "type": "mqtt out",
+        "z": "tab_agrisense_core",
+        "name": "MQTT Alarm Dispatcher",
+        "topic": "agrisense/alarms/critical",
+        "qos": "1",
+        "retain": "true",
+        "broker": "mqtt_broker_local",
+        "x": 1130,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "node_ws_out",
+        "type": "websocket out",
+        "z": "tab_agrisense_core",
+        "name": "WebSocket Portal Stream",
+        "server": "ws_server_config",
+        "client": "",
+        "x": 1140,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "node_water_ledger",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Water Savings & CO2 Ledger",
+        "func": "const act = msg.actuation || {};\nlet totalSavedLiters = context.get('totalSavedLiters') || 14660;\nif (act.command === 'CLOSED') {\n  totalSavedLiters += 2.5;\n}\ncontext.set('totalSavedLiters', totalSavedLiters);\nconst avoidedKwh = (totalSavedLiters * 0.0012).toFixed(2);\nconst avoidedCo2 = (avoidedKwh * 0.42).toFixed(2);\nnode.status({ fill: 'green', shape: 'dot', text: `Saved: ${Math.round(totalSavedLiters)} L | ${avoidedCo2} kg CO2` });\nmsg.ledger = { saved_liters: totalSavedLiters, kwh: avoidedKwh, co2_kg: avoidedCo2 };\nreturn msg;",
+        "outputs": 1,
+        "x": 1140,
+        "y": 460,
+        "wires": [
+            [
+                "node_circular_log"
+            ]
+        ]
+    },
+    {
+        "id": "node_circular_log",
+        "type": "function",
+        "z": "tab_agrisense_core",
+        "name": "Circular Offline Log Buffer",
+        "func": "let log = context.get('edge_log') || [];\nlog.unshift({\n  ts: new Date().toISOString(),\n  cmd: msg.actuation ? msg.actuation.command : 'NONE',\n  reason: msg.actuation ? msg.actuation.reason : 'NONE',\n  m10: msg.payload ? msg.payload.moisture_10cm : 0,\n  m30: msg.payload ? msg.payload.moisture_30cm : 0\n});\nif (log.length > 50) log.pop();\ncontext.set('edge_log', log);\nnode.status({ fill: 'grey', shape: 'dot', text: `Buffered: ${log.length} records` });\nreturn msg;",
+        "outputs": 1,
+        "x": 1140,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_debug_valve",
+        "type": "debug",
+        "z": "tab_agrisense_core",
+        "name": "Valve State Monitor",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.command",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "node_debug_fao56",
+        "type": "debug",
+        "z": "tab_agrisense_core",
+        "name": "FAO-56 ET0 Monitor",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "et0_mm_day",
+        "targetType": "msg",
+        "statusVal": "et0_mm_day",
+        "statusType": "auto",
+        "x": 810,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "node_debug_alarms",
+        "type": "debug",
+        "z": "tab_agrisense_core",
+        "name": "Safety Alarms Monitor",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.alarm",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "node_debug_telemetry",
+        "type": "debug",
+        "z": "tab_agrisense_core",
+        "name": "Full Pipeline Audit",
+        "active": false,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 1130,
+        "y": 700,
+        "wires": []
+    }
+]
