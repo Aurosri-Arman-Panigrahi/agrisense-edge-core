@@ -1,0 +1,17 @@
+{
+  "name": "agrisense-scada",
+  "version": "1.0.0",
+  "description": "AgriSense-Edge Pod™ Industry 4.0 SCADA Node-RED Runtime Engine",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "node-red": "^5.0.9"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
