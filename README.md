@@ -1,9 +1,11 @@
 # AgriSense-Edge Pod™ Core (agrisense-edge-core)
 
 [![Live Web Portal](https://img.shields.io/badge/Live_Portal-GitHub_Pages-22c55e?style=for-the-badge&logo=github)](https://aurosri-arman-panigrahi.github.io/agrisense-edge-portal/)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Aurosri-Arman-Panigrahi/agrisense-edge-core)
 [![Deploy to Render](https://img.shields.io/badge/Deploy_to_Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/Aurosri-Arman-Panigrahi/agrisense-edge-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![IEEE Paper](https://img.shields.io/badge/IEEE_Manuscript-5_Pages_PDF-dc2626?style=for-the-badge&logo=adobeacrobatreader)](paper/AgriSense_Edge_Research_Paper.pdf)
+
 
 > **Patent Pending | IPC Classification: A01G 25/16 (Agricultural Watering Control)**  
 > **Authors:** Aurosri Arman Panigrahi, Aayush Saha, Ayush Pradhan, Ayush Das, Kumar Mimanshu Singh  
@@ -82,26 +84,35 @@ graph LR
 
 ---
 
-## 🚀 Deployment Options
+## 🚀 Free Deployment & Live Access Options
 
-### Option 1: 1-Click Cloud Deploy to Render
-Deploy the Node-RED engine directly to the cloud without local hardware:
+### Option 1: 1-Click Live in GitHub (GitHub Codespaces)
+Run the active Node-RED visual SCADA pipeline directly inside your browser on GitHub's cloud infrastructure (60 hours free per month for all GitHub accounts):
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Aurosri-Arman-Panigrahi/agrisense-edge-core)
+
+- Click the badge above or navigate to **Code > Codespaces > Create codespace on main**.
+- GitHub automatically builds the `.devcontainer` and launches Node-RED on port 1880.
+- Port 1880 is automatically forwarded as a public live URL (`https://<codespace-id>-1880.app.github.dev`)!
+
+### Option 2: 1-Click 24/7 Cloud Deploy to Render (Free Tier)
+Deploy the Node-RED engine directly to the cloud without local hardware (750 free hours/month):
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Aurosri-Arman-Panigrahi/agrisense-edge-core)
 
-### Option 2: Docker / Docker Compose
-Run the entire stack (Node-RED + Mosquitto MQTT Broker) with one command:
+### Option 3: Free Hugging Face Docker Space (16 GB RAM)
+Deploy as a persistent, free public Docker application:
+1. Create a new Space at [huggingface.co/new-space](https://huggingface.co/new-space).
+2. Select **Docker** (Blank).
+3. Connect or mirror this GitHub repository (`agrisense-edge-core`).
+4. Hugging Face automatically executes `nodered/Dockerfile` and gives you a permanent public URL (e.g. `https://<user>-agrisense-edge.hf.space`) with full iframe embedding support.
+
+### Option 4: Local Docker Compose
 ```bash
 cd nodered
 docker compose up -d
 ```
 Access the visual SCADA flow canvas at `http://localhost:1880/`.
-
-### Option 3: Local Node.js Execution
-```bash
-cd nodered
-npm install
-npm start
-```
 
 ---
 

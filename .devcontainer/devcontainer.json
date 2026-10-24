@@ -1,0 +1,22 @@
+{
+  "name": "AgriSense-Edge Node-RED SCADA Engine",
+  "build": {
+    "dockerfile": "../nodered/Dockerfile",
+    "context": "../nodered"
+  },
+  "forwardPorts": [1880],
+  "portsAttributes": {
+    "1880": {
+      "label": "Node-RED SCADA Canvas",
+      "onAutoForward": "openBrowser",
+      "visibility": "public"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
